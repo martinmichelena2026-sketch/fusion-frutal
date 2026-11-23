@@ -2141,22 +2141,22 @@
       <div id="hub-body" class="overflow-y-auto text-sm space-y-2"></div>
     </div>
   </div>
-  <div id="ff-toast" class="hidden fixed top-3 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg z-[60]"></div>
+  <div id="ff-toast" style="display:none;position:fixed;left:50%;bottom:90px;transform:translateX(-50%);max-width:88%;background:#0f172a;color:#fff;font:700 14px/1.3 sans-serif;padding:12px 18px;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.45);z-index:2147483647;text-align:center"></div>
 
   <script>
   // ===== Módulo FF: conexión con el servidor, anuncios, misiones y niveles =====
   window.FF = (function () {
     const tg = window.Telegram && Telegram.WebApp;
     const $ = (id) => document.getElementById(id);
-    let cfg = {}, state = null, gameId = null, tab = 'missions', adFn = null, busy = false;
+    let sdkStatus = 'sin intentar', cfg = {}, state = null, gameId = null, tab = 'missions', adFn = null, busy = false;
     let sandiaThisGame = false, prepared = { end: null, pop: null };
     const API = String(window.FF_API_BASE || '').replace(/\/$/, '');
     const params = new URLSearchParams(location.search);
     const devUser = params.get('dev'); // ?dev=123 (solo funciona si el servidor está en DEV_MODE)
 
     function toast(t) {
-      const el = $('ff-toast'); el.textContent = t; el.classList.remove('hidden');
-      clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.add('hidden'), 2600);
+      const el = $('ff-toast'); el.textContent = t; el.style.display = 'block';
+      clearTimeout(toast._t); toast._t = setTimeout(() => { el.style.display = 'none'; }, 4500);
     }
     async function api(path, method = 'GET', body) {
       const headers = { 'content-type': 'application/json' };
@@ -2176,11 +2176,12 @@
     // ---- Monetag ----
     function loadSdk() {
       return new Promise((resolve) => {
-        if (!cfg.zoneId) return resolve(false);
+        if (!cfg.zoneId) { sdkStatus = 'falta la zona'; return resolve(false); }
+        sdkStatus = 'cargando';
         const s = document.createElement('script');
         s.src = cfg.sdkSrc; s.dataset.zone = cfg.zoneId; s.dataset.sdk = 'show_' + cfg.zoneId;
-        s.onload = () => { adFn = window['show_' + cfg.zoneId]; resolve(!!adFn); };
-        s.onerror = () => resolve(false);
+        s.onload = () => { adFn = window['show_' + cfg.zoneId]; sdkStatus = adFn ? 'cargado' : 'cargó pero sin función de anuncios'; resolve(!!adFn); };
+        s.onerror = () => { sdkStatus = 'bloqueado o no se pudo descargar'; resolve(false); };
         document.head.appendChild(s);
       });
     }
@@ -2201,7 +2202,8 @@
     async function watchAd(type) {
       if (busy) return; busy = true;
       try {
-        if (guest()) { toast('Abrí el juego desde Telegram para ganar puntos'); return; }
+        toast('Preparando anuncio…');
+        if (guest()) { toast('No te reconozco como usuario de Telegram. Abrí el juego desde el bot (botón Jugar) y probá de nuevo.'); return; }
         let ymid = prepared[type];
         if (!ymid) { const r = await prepare(type); if (!r.ok) { toast(r.error === 'ads_cap' || r.error === 'pop_cap' ? 'Llegaste al límite de hoy' : 'No se pudo preparar el anuncio'); return; } ymid = prepared[type]; }
         prepared[type] = null;
@@ -2210,10 +2212,13 @@
           await api('/dev/fake-postback', 'POST', { ymid });
           await refresh(); toast('✅ Anuncio simulado (modo prueba)');
         } else {
-          if (!adFn) { toast('Anuncios no disponibles ahora'); return; }
+          if (!adFn && cfg.zoneId) adFn = window['show_' + cfg.zoneId];
+          if (!adFn) { toast('Monetag no cargó (' + sdkStatus + ')'); return; }
+          toast('Pidiendo anuncio a Monetag…');
           try {
-            await adFn(type === 'pop' ? { type: 'pop', ymid } : { ymid });
-          } catch (e) { toast('No hay anuncio disponible, probá más tarde'); return; }
+            const limite = new Promise((_, rej) => setTimeout(() => rej(new Error('Monetag no respondió en 60 s')), 60000));
+            await Promise.race([adFn(type === 'pop' ? { type: 'pop', ymid } : { ymid }), limite]);
+          } catch (e) { toast('Sin anuncio: ' + String((e && e.message) || e || 'Monetag no tiene anuncios para mostrar ahora').slice(0, 120)); return; }
           toast('Verificando anuncio…');
           const ok = await pollAfterAd(before);
           toast(ok ? '✅ ¡Puntos sumados!' : 'Anuncio no validado');
@@ -2232,7 +2237,11 @@
     function render() {
       document.querySelectorAll('.hub-tab').forEach((b) => { const on = b.dataset.tab === tab; b.className = 'hub-tab flex-1 py-1.5 rounded-xl ' + (on ? 'bg-emerald-500 text-white' : 'bg-emerald-100 text-emerald-900'); });
       const el = $('hub-body');
-      if (guest()) { el.innerHTML = '<p class="text-center py-6">Abrí el juego desde el bot de Telegram para ver tus misiones y niveles.</p>'; return; }
+      const diag = `<p class="text-[10px] opacity-60 pt-2">Diagnóstico · Telegram: ${tg && tg.initData ? 'sí' : 'no'} · usuario: ${state ? 'ok' : 'sin conexión'} · SDK: ${sdkStatus} · zona: ${cfg.zoneId || '—'}</p>`;
+      if (guest()) {
+        el.innerHTML = '<p class="text-center py-6">No se pudo conectar con el servidor o con tu usuario de Telegram. Abrí el juego desde el bot.</p>' + diag; return;
+      }
+      if (false) { el.innerHTML = '<p class="text-center py-6">Abrí el juego desde el bot de Telegram para ver tus misiones y niveles.</p>'; return; }
       const s = state;
       if (tab === 'missions') {
         el.innerHTML = `<div class="flex gap-2">
@@ -2287,6 +2296,7 @@
           if (r.ok) { setState(r.state); toast('Retiro solicitado'); } else toast(r.error === 'pending' ? 'Ya tenés un retiro pendiente' : r.error === 'wallet' ? 'Completá tus datos de cobro' : 'No se pudo solicitar');
         };
       }
+      el.insertAdjacentHTML('beforeend', diag);
     }
 
     function open() { $('hub-modal').classList.remove('hidden'); render(); refresh(); }
