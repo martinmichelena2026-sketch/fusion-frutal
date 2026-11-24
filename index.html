@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Fusión de Frutas - Suika Game</title>
+  <!-- Monetag SDK (tag fijo, como lo pide Monetag) -->
+  <script src='//libtl.com/sdk.js' data-zone='12329155' data-sdk='show_12329155'></script>
   <!-- Tailwind CSS -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="config.js"></script>
@@ -2177,6 +2179,9 @@
     function loadSdk() {
       return new Promise((resolve) => {
         if (!cfg.zoneId) { sdkStatus = 'falta la zona'; return resolve(false); }
+        if (typeof window['show_' + cfg.zoneId] === 'function') {
+          adFn = window['show_' + cfg.zoneId]; sdkStatus = 'cargado'; return resolve(true);
+        }
         sdkStatus = 'cargando';
         const s = document.createElement('script');
         s.src = cfg.sdkSrc; s.dataset.zone = cfg.zoneId; s.dataset.sdk = 'show_' + cfg.zoneId;
