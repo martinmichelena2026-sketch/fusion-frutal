@@ -2180,7 +2180,9 @@
       return new Promise((resolve) => {
         if (!cfg.zoneId) { sdkStatus = 'falta la zona'; return resolve(false); }
         if (typeof window['show_' + cfg.zoneId] === 'function') {
-          adFn = window['show_' + cfg.zoneId]; sdkStatus = 'cargado'; return resolve(true);
+          adFn = window['show_' + cfg.zoneId]; sdkStatus = 'cargado';
+          try { adFn({ type: 'inApp', inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false } }); } catch (e) {} /* PRUEBA */
+          return resolve(true);
         }
         sdkStatus = 'cargando';
         const s = document.createElement('script');
@@ -2222,11 +2224,6 @@
           toast('Pidiendo anuncio a Monetag…');
           try {
             const limite = new Promise((_, rej) => setTimeout(() => rej(new Error('Monetag no respondió en 60 s')), 60000));
-            if (type !== 'pop') {
-              // Monetag recomienda precargar el anuncio antes de mostrarlo
-              const pre = new Promise((_, rej) => setTimeout(() => rej(new Error('La precarga tardó más de 25 s')), 25000));
-              await Promise.race([adFn({ type: 'preload', ymid }), pre]);
-            }
             await Promise.race([adFn(type === 'pop' ? { type: 'pop', ymid } : { ymid }), limite]);
           } catch (e) { toast('Sin anuncio: ' + String((e && e.message) || e || 'Monetag no tiene anuncios para mostrar ahora').slice(0, 120)); return; }
           toast('Verificando anuncio…');
