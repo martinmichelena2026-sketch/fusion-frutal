@@ -2316,7 +2316,6 @@
         if (!cfg.zoneId) { sdkStatus = 'falta la zona'; return resolve(false); }
         if (typeof window['show_' + cfg.zoneId] === 'function') {
           adFn = window['show_' + cfg.zoneId]; sdkStatus = 'cargado';
-          try { adFn({ type: 'inApp', inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false } }); } catch (e) {} /* PRUEBA */
           return resolve(true);
         }
         sdkStatus = 'cargando';
@@ -2326,6 +2325,18 @@
         s.onerror = () => { sdkStatus = 'bloqueado o no se pudo descargar'; resolve(false); };
         document.head.appendChild(s);
       });
+    }
+    // Anuncio automático (In-App Interstitial): Monetag lo muestra solo cada cierto tiempo.
+    // El servidor cuenta cada uno cuando Monetag avisa (postback con request_var=auto).
+    let autoAdsOn = false;
+    function startAutoAds() {
+      if (autoAdsOn || !adFn || cfg.dev) return;
+      autoAdsOn = true;
+      const a = cfg.inApp || {};
+      try {
+        const pr = adFn({ type: 'inApp', inAppSettings: { frequency: a.frequency || 2, capping: a.capping || 0.1, interval: a.interval || 30, timeout: a.timeout || 5, everyPage: false } });
+        if (pr && pr.catch) pr.catch((e) => console.warn('Anuncio automático:', e && e.message));
+      } catch (e) { console.warn('Anuncio automático:', e && e.message); }
     }
     async function prepare(type) {
       const r = await api('/api/ad/prepare', 'POST', { type });
@@ -2474,7 +2485,7 @@
         const c = await api('/api/config'); if (c.ok) cfg = c;
         if (!cfg.dev) await loadSdk();
         const r = await refresh();
-        if (r.ok) { prepare('end'); prepare('pop'); this.onGameStart(); }
+        if (r.ok) { prepare('end'); prepare('pop'); startAutoAds(); this.onGameStart(); }
       },
       async onGameStart() {
         sandiaThisGame = false; gameId = null; $('go-reward').classList.add('hidden');
