@@ -2394,7 +2394,7 @@
     function render() {
       document.querySelectorAll('.hub-tab').forEach((b) => { const on = b.dataset.tab === tab; b.className = 'hub-tab flex-1 py-1.5 rounded-xl ' + (on ? 'bg-emerald-500 text-white' : 'bg-emerald-100 text-emerald-900'); });
       const el = $('hub-body');
-      const diag = `<p class="text-[10px] opacity-60 pt-2">Diagnóstico · Telegram: ${tg && tg.initData ? 'sí' : 'no'} · usuario: ${state ? 'ok' : 'sin conexión'} · SDK: ${sdkStatus} · zona: ${cfg.zoneId || '—'}</p>`;
+      const diag = `<p class="text-[10px] opacity-60 pt-2">Diagnóstico · Telegram: ${tg && tg.initData ? 'sí' : 'no'} · usuario: ${state ? 'ok' : 'sin conexión'} · SDK: ${sdkStatus} · zona: ${cfg.zoneId || '—'} · auto: ${autoAdsOn ? 'pedido' : 'no'}</p>`;
       if (guest()) {
         el.innerHTML = '<p class="text-center py-6">No se pudo conectar con el servidor o con tu usuario de Telegram. Abrí el juego desde el bot.</p>' + diag; return;
       }
@@ -2484,8 +2484,9 @@
         $('btn-go-ad').onclick = () => watchAd('end');
         const c = await api('/api/config'); if (c.ok) cfg = c;
         if (!cfg.dev) await loadSdk();
+        startAutoAds(); // el anuncio automático no depende de que el servidor responda
         const r = await refresh();
-        if (r.ok) { prepare('end'); prepare('pop'); startAutoAds(); this.onGameStart(); }
+        if (r.ok) { prepare('end'); prepare('pop'); this.onGameStart(); }
       },
       async onGameStart() {
         sandiaThisGame = false; gameId = null; $('go-reward').classList.add('hidden');
