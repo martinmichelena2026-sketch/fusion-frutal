@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Panel · Fusión Frutal</title>
+<script src="config.js"></script>
+<style>
+:root{--bg:#14101f;--card:#1f1933;--card2:#2a2244;--line:#3a3160;--tx:#f3eefc;--mut:#a79fc4;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--ac:#a78bfa;--ac2:#f472b6}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:84px}
+header{position:sticky;top:0;z-index:5;background:#14101fee;backdrop-filter:blur(8px);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+h1{font-size:17px;margin:0}h1 small{display:block;font-weight:400;color:var(--mut);font-size:12px}
+main{padding:14px 16px;max-width:760px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px}
+.card h2{font-size:14px;margin:0 0 10px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{background:var(--card2);border-radius:14px;padding:12px}
+.kpi b{display:block;font-size:24px;line-height:1.1}.kpi span{color:var(--mut);font-size:12px}
+.kpi.g b{color:var(--ok)}.kpi.w b{color:var(--warn)}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#1a142bf5;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:6}
+nav button{flex:1;background:none;border:0;color:var(--mut);padding:10px 2px 9px;font-size:11px;cursor:pointer}
+nav button i{display:block;font-style:normal;font-size:20px}
+nav button.on{color:var(--ac2)}
+button.b,a.b{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border:0;border-radius:12px;padding:11px 16px;font-weight:700;font-size:15px;cursor:pointer;text-decoration:none;display:inline-block}
+button.s{background:var(--card2);color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer}
+button.ok{background:#14532d;border-color:#166534;color:#bbf7d0}button.no{background:#4c1d1d;border-color:#7f1d1d;color:#fecaca}
+button:disabled{opacity:.5}
+input{width:100%;background:#120e1f;border:1px solid var(--line);color:var(--tx);border-radius:10px;padding:10px;font-size:15px}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}label small{color:#8a82a8}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}
+.item{display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border:0}.item .m{color:var(--mut);font-size:12px;word-break:break-all}
+.tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700}
+.t-p{background:#78350f;color:#fde68a}.t-o{background:#14532d;color:#bbf7d0}.t-r{background:#4c1d1d;color:#fecaca}
+.chart{display:flex;align-items:flex-end;gap:4px;height:110px}
+.chart div{flex:1;background:linear-gradient(var(--ac2),var(--ac));border-radius:4px 4px 0 0;min-height:2px;position:relative}
+.axis{display:flex;gap:4px;font-size:10px;color:var(--mut);margin-top:4px}.axis span{flex:1;text-align:center}
+.lv{background:var(--card2);border-radius:14px;padding:12px;margin-bottom:10px}
+.lv h3{margin:0 0 6px;font-size:15px;display:flex;justify-content:space-between}
+.lv .grid{grid-template-columns:repeat(4,1fr);gap:6px}.lv label{font-size:11px;margin:4px 0 2px}.lv input{padding:8px 6px}
+.calc{font-size:12px;margin-top:8px;color:var(--mut)}.calc b.good{color:var(--ok)}.calc b.loss{color:var(--bad)}
+#toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:#000d;color:#fff;padding:10px 16px;border-radius:12px;opacity:0;transition:.25s;pointer-events:none;z-index:9;max-width:90%}
+#toast.on{opacity:1}
+.demo{background:#78350f;color:#fde68a;text-align:center;padding:6px;font-size:12px;font-weight:700}
+.hide{display:none!important}
+.login{max-width:380px;margin:12vh auto;padding:0 16px;text-align:center}
+.empty{color:var(--mut);text-align:center;padding:16px}
+</style>
+</head>
+<body>
+<div id="demoBar" class="demo hide">MODO DEMOSTRACIÓN · datos de ejemplo, no son reales</div>
+
+<div id="login" class="login hide">
+  <div style="font-size:54px">🍉</div>
+  <h1 style="font-size:22px;margin:8px 0 4px">Panel de Fusión Frutal</h1>
+  <p style="color:var(--mut)">Ingresá tu clave de administrador (ADMIN_KEY)</p>
+  <input id="key" type="password" placeholder="Clave" autocomplete="current-password">
+  <p id="loginErr" style="color:var(--bad);min-height:20px"></p>
+  <button class="b" id="enter" style="width:100%">Entrar</button>
+</div>
+
+<div id="app" class="hide">
+<header><h1>🍉 Panel<small id="sub">Fusión Frutal</small></h1><button class="s" id="refresh">↻ Actualizar</button></header>
+<main>
+  <section id="v-home">
+    <div class="grid" id="kpis"></div>
+    <div class="card" style="margin-top:14px"><h2>Usuarios nuevos · últimos 14 días</h2><div class="chart" id="chNew"></div><div class="axis" id="axNew"></div></div>
+    <div class="card"><h2>Ganancia por día (USD)</h2><div class="chart" id="chRev"></div><div class="axis" id="axRev"></div></div>
+    <div class="card"><h2>Usuarios por nivel</h2><div id="lvls"></div></div>
+  </section>
+
+  <section id="v-users" class="hide">
+    <div class="card"><div class="row"><input id="q" placeholder="Buscar por nombre, @usuario o ID"><button class="s" id="qgo" style="flex:0 0 auto">Buscar</button></div></div>
+    <div class="card"><h2 id="uTitle">Usuarios</h2><div id="ulist"></div></div>
+  </section>
+
+  <section id="v-wd" class="hide">
+    <div class="card"><h2>Retiros pendientes</h2><div id="wPend"></div></div>
+    <div class="card"><h2>Historial</h2><div id="wDone"></div></div>
+  </section>
+
+  <section id="v-eco" class="hide">
+    <div class="card">
+      <h2>Cuánto se le paga a los usuarios</h2>
+      <p style="margin:0;color:var(--mut);font-size:13px">Los cambios se aplican a toda la app en segundos. Cada anuncio te paga en promedio <b id="avgAd">—</b>.</p>
+    </div>
+    <div class="card"><h2>Anuncios</h2><div id="fAds"></div></div>
+    <div class="card"><h2>Juego</h2><div id="fGame"></div></div>
+    <div class="card"><h2>Invitaciones y retiro</h2><div id="fRef"></div></div>
+    <div class="card"><h2>Niveles (premio en USD)</h2><div id="fLv"></div></div>
+    <div class="row" style="margin-bottom:14px"><button class="b" id="save">Guardar cambios</button><button class="s" id="reset">Volver a valores de fábrica</button></div>
+  </section>
+</main>
+<nav>
+  <button data-v="home" class="on"><i>📊</i>Resumen</button>
+  <button data-v="users"><i>👥</i>Usuarios</button>
+  <button data-v="wd"><i>💸</i>Retiros <span id="wBadge"></span></button>
+  <button data-v="eco"><i>⚙️</i>Economía</button>
+</nav>
+</div>
+<div id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const DEMO=/[?&]demo=1/.test(location.search);
+const BASE=(window.FF_API_BASE||'').replace(/\/$/,'');
+let KEY='',eco=null,defaults=null,avg=0;
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const usd=n=>'$'+(Number(n)||0).toFixed(n!==0&&Math.abs(n)<1?3:2);
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2600)}
+
+// ---------- datos de demostración ----------
+function demoApi(path,method,body){
+  const days=[...Array(14)].map((_,i)=>{const d=new Date(Date.now()-(13-i)*864e5);return d.toISOString().slice(0,10)});
+  const cfg={ads:{maxPerDay:40,pointsPerAd:10,autoPointsPerAd:5},game:{pointsPerScore:100,maxPointsPerGame:30,maxPointsPerDay:300},referrals:{bonusPoints:50,maxActivationsPerDay:20},withdrawal:{minUsd:0.5},
+   levels:[{level:1,ads:15,points:100,referrals:0,rewardUsd:0.02},{level:2,ads:30,points:250,referrals:0,rewardUsd:0.02},{level:3,ads:50,points:400,referrals:1,rewardUsd:0.02},{level:4,ads:80,points:600,referrals:2,rewardUsd:0.02},{level:5,ads:120,points:900,referrals:3,rewardUsd:0.02}]};
+  if(path==='/admin/stats')return{users:248,newToday:9,new7d:61,activeToday:73,adsValuedToday:412,revenueTodayUsd:1.32,adsValuedTotal:9120,revenueTotalUsd:27.4,avgRevenuePerAdUsd:0.003,paidToUsersUsd:6.2,owedToUsersUsd:3.1,pendingWithdrawals:3,pendingWithdrawalsUsd:1.8,nonValued:120,
+    levels:[{level:1,n:120},{level:2,n:70},{level:3,n:34},{level:4,n:16},{level:5,n:8}],
+    series:days.map((d,i)=>({day:d,newUsers:[3,5,2,8,6,9,4,7,5,11,8,6,10,9][i],active:30+i*3,ads:200+i*20,games:90+i*5,revenueUsd:[.4,.6,.5,.9,.8,1.1,.7,1,.9,1.4,1.2,1,1.5,1.32][i]}))};
+  if(path==='/admin/users')return{total:248,users:[
+    {tg_id:'1001',name:'Lucía',username:'lucia_ar',created:Date.now()-3e6,points:420,level:3,usd:0.06,refs_total:4,banned:0},
+    {tg_id:'1002',name:'Mateo',username:'mateo99',created:Date.now()-9e6,points:90,level:1,usd:0.02,refs_total:0,banned:0},
+    {tg_id:'1003',name:'Sofi',username:'',created:Date.now()-2e7,points:1250,level:5,usd:0.1,refs_total:9,banned:0},
+    {tg_id:'1004',name:'Bot sospechoso',username:'spam_x',created:Date.now()-4e7,points:9000,level:2,usd:0.04,refs_total:0,banned:1}]};
+  if(path==='/admin/withdrawals')return[
+    {id:'a1b2',usd:0.6,wallet:'UQ…x9fK (TON)',status:'pending',created:Date.now()-36e5,tg_id:'1003',name:'Sofi',username:''},
+    {id:'c3d4',usd:0.5,wallet:'TXk…83a (USDT)',status:'pending',created:Date.now()-9e6,tg_id:'1001',name:'Lucía',username:'lucia_ar'},
+    {id:'e5f6',usd:1.2,wallet:'UQ…77pA (TON)',status:'paid',created:Date.now()-9e7,tg_id:'1002',name:'Mateo',username:'mateo99'},
+    {id:'g7h8',usd:0.5,wallet:'UQ…aa11 (TON)',status:'rejected',created:Date.now()-2e8,tg_id:'1004',name:'Bot sospechoso',username:'spam_x'}];
+  if(path==='/admin/config'&&method==='GET')return{config:cfg,defaults:cfg,custom:false};
+  return{ok:true,config:cfg};
+}
+
+async function api(path,method='GET',body){
+  if(DEMO){await new Promise(r=>setTimeout(r,120));if(method==='POST'&&/withdrawals|ban|config/.test(path))toast('Modo demostración: no se guardó nada');return demoApi(path,method,body)}
+  const r=await fetch(BASE+path,{method,headers:{'content-type':'application/json','x-admin-key':KEY},body:method==='POST'?JSON.stringify(body||{}):undefined});
+  if(r.status===403)throw new Error('Clave incorrecta');
+  if(r.status===429)throw new Error('Demasiados intentos. Esperá un minuto.');
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(d.error||('Error '+r.status));
+  return d;
+}
+
+// ---------- vistas ----------
+function bars(el,ax,arr,key,fmt){
+  const mx=Math.max(...arr.map(x=>x[key]),0.0001);
+  $(el).innerHTML=arr.map(x=>`<div title="${esc(x.day)}: ${fmt(x[key])}" style="height:${Math.max(2,x[key]/mx*100)}%"></div>`).join('');
+  $(ax).innerHTML=arr.map((x,i)=>`<span>${i%3===0?x.day.slice(8):''}</span>`).join('');
+}
+async function loadHome(){
+  const s=await api('/admin/stats'); avg=s.avgRevenuePerAdUsd||0;
+  $('#kpis').innerHTML=[
+   ['g',s.users,'Usuarios totales'],['',s.newToday,'Nuevos hoy'],['',s.new7d,'Nuevos 7 días'],['',s.activeToday,'Activos hoy'],
+   ['g',usd(s.revenueTodayUsd),'Ganancia hoy'],['g',usd(s.revenueTotalUsd),'Ganancia total'],
+   ['',s.adsValuedToday,'Anuncios hoy'],['',usd(s.avgRevenuePerAdUsd),'Por anuncio (prom.)'],
+   ['w',usd(s.owedToUsersUsd),'Debés a usuarios'],['',usd(s.paidToUsersUsd),'Ya pagado'],
+   ['w',s.pendingWithdrawals+' · '+usd(s.pendingWithdrawalsUsd),'Retiros pendientes'],['',usd(s.revenueTotalUsd-s.paidToUsersUsd-s.owedToUsersUsd),'Saldo libre (aprox.)']
+  ].map(([c,v,l])=>`<div class="kpi ${c}"><b>${esc(v)}</b><span>${l}</span></div>`).join('');
+  bars('#chNew','#axNew',s.series,'newUsers',v=>v+' nuevos');
+  bars('#chRev','#axRev',s.series,'revenueUsd',usd);
+  const tot=s.levels.reduce((a,b)=>a+b.n,0)||1;
+  $('#lvls').innerHTML=s.levels.map(l=>`<div class="item"><span>Nivel ${l.level}</span><span><b>${l.n}</b> <span class="m">(${Math.round(l.n/tot*100)}%)</span></span></div>`).join('')||'<div class="empty">Sin datos</div>';
+  $('#wBadge').textContent=s.pendingWithdrawals?'('+s.pendingWithdrawals+')':'';
+}
+async function loadUsers(q){
+  const d=await api('/admin/users'+(q?'?q='+encodeURIComponent(q):''));
+  $('#uTitle').textContent=`Usuarios (${d.users.length} de ${d.total})`;
+  $('#ulist').innerHTML=d.users.map(u=>`<div class="item"><div><b>${esc(u.name||'Sin nombre')}</b> ${u.username?'<span class="m">@'+esc(u.username)+'</span>':''} ${u.banned?'<span class="tag t-r">BLOQUEADO</span>':''}
+   <div class="m">ID ${esc(u.tg_id)} · Nivel ${u.level} · ${u.points} pts · ${usd(u.usd)} · ${u.refs_total} invitados</div></div>
+   <button class="s ${u.banned?'ok':'no'}" data-ban="${esc(u.tg_id)}" data-to="${u.banned?0:1}">${u.banned?'Desbloquear':'Bloquear'}</button></div>`).join('')||'<div class="empty">No hay resultados</div>';
+}
+async function loadWd(){
+  const w=await api('/admin/withdrawals');
+  const it=x=>`<div class="item"><div><b>${usd(x.usd)}</b> <span class="tag ${x.status==='pending'?'t-p':x.status==='paid'?'t-o':'t-r'}">${x.status==='pending'?'PENDIENTE':x.status==='paid'?'PAGADO':'RECHAZADO'}</span>
+   <div class="m">${esc(x.name||'')} ${x.username?'@'+esc(x.username):''} · ID ${esc(x.tg_id)}</div><div class="m">Billetera: ${esc(x.wallet)}</div><div class="m">${new Date(x.created).toLocaleString('es-AR')}</div></div>
+   ${x.status==='pending'?`<div style="display:flex;flex-direction:column;gap:6px"><button class="s ok" data-wd="${esc(x.id)}" data-a="paid">Pagué</button><button class="s no" data-wd="${esc(x.id)}" data-a="reject">Rechazar</button></div>`:''}</div>`;
+  const p=w.filter(x=>x.status==='pending'),h=w.filter(x=>x.status!=='pending');
+  $('#wPend').innerHTML=p.map(it).join('')||'<div class="empty">No hay retiros pendientes 🎉</div>';
+  $('#wDone').innerHTML=h.map(it).join('')||'<div class="empty">Todavía no hay historial</div>';
+  $('#wBadge').textContent=p.length?'('+p.length+')':'';
+}
+const F=(id,g,k,label,hint,step)=>`<label>${label} <small>${hint||''}</small></label><input type="number" inputmode="decimal" step="${step||1}" min="0" data-g="${g}" data-k="${k}" value="${eco[g][k]}">`;
+function calcLv(i){
+  const l=eco.levels[i],cost=l.rewardUsd,rev=l.ads*avg,m=rev-cost;
+  const el=$(`#calc${i}`);if(!el)return;
+  el.innerHTML=avg?`Ganás ~<b>${usd(rev)}</b> en anuncios · pagás <b>${usd(cost)}</b> → <b class="${m>=0?'good':'loss'}">${m>=0?'ganancia':'pérdida'} ${usd(Math.abs(m))}</b>`:'Todavía no hay datos de ganancia por anuncio.';
+}
+async function loadEco(){
+  const d=await api('/admin/config'); eco=d.config; defaults=d.defaults;
+  if(!avg){try{avg=(await api('/admin/stats')).avgRevenuePerAdUsd||0}catch(e){}}
+  $('#avgAd').textContent=avg?usd(avg):'sin datos aún';
+  $('#fAds').innerHTML=F(0,'ads','maxPerDay','Anuncios máximos por día','por usuario')+F(0,'ads','pointsPerAd','Puntos por anuncio de video')+F(0,'ads','autoPointsPerAd','Puntos por anuncio automático');
+  $('#fGame').innerHTML=F(0,'game','pointsPerScore','Puntaje necesario para 1 punto','más alto = más difícil')+F(0,'game','maxPointsPerGame','Máximo de puntos por partida')+F(0,'game','maxPointsPerDay','Máximo de puntos por día jugando');
+  $('#fRef').innerHTML=F(0,'referrals','bonusPoints','Puntos por invitar a alguien')+F(0,'referrals','maxActivationsPerDay','Invitaciones máximas por día')+F(0,'withdrawal','minUsd','Mínimo para retirar (USD)','',0.01).replace('data-g="withdrawal"','data-g="withdrawal"');
+  $('#fLv').innerHTML=eco.levels.map((l,i)=>`<div class="lv"><h3>Nivel ${l.level}</h3><div class="grid">
+    <div><label>Anuncios</label><input type="number" inputmode="numeric" data-l="${i}" data-k="ads" value="${l.ads}"></div>
+    <div><label>Puntos</label><input type="number" inputmode="numeric" data-l="${i}" data-k="points" value="${l.points}"></div>
+    <div><label>Invitados</label><input type="number" inputmode="numeric" data-l="${i}" data-k="referrals" value="${l.referrals}"></div>
+    <div><label>Premio $</label><input type="number" inputmode="decimal" step="0.01" data-l="${i}" data-k="rewardUsd" value="${l.rewardUsd}"></div></div>
+    <div class="calc" id="calc${i}"></div></div>`).join('');
+  eco.levels.forEach((_,i)=>calcLv(i));
+}
+$('#v-eco').addEventListener('input',e=>{
+  const t=e.target;if(t.tagName!=='INPUT')return;
+  if(t.dataset.l!==undefined){eco.levels[+t.dataset.l][t.dataset.k]=t.value===''?'':Number(t.value);calcLv(+t.dataset.l)}
+  else eco[t.dataset.g][t.dataset.k]=t.value===''?'':Number(t.value);
+});
+$('#save').onclick=async()=>{
+  $('#save').disabled=true;
+  try{const d=await api('/admin/config','POST',{config:eco});if(!DEMO){eco=d.config;toast('✅ Guardado. Ya se aplica en la app')}}
+  catch(e){toast('⚠️ '+e.message)}
+  $('#save').disabled=false;
+};
+$('#reset').onclick=async()=>{
+  if(!confirm('¿Volver a los valores de fábrica?'))return;
+  try{await api('/admin/config/reset','POST');toast('Valores de fábrica restaurados');await loadEco()}catch(e){toast('⚠️ '+e.message)}
+};
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('button');if(!b)return;
+  try{
+    if(b.dataset.ban){if(!confirm(b.dataset.to==='1'?'¿Bloquear a este usuario?':'¿Desbloquear?'))return;await api(`/admin/users/${b.dataset.ban}/ban`,'POST',{banned:b.dataset.to==='1'});if(!DEMO)toast('Listo');loadUsers($('#q').value.trim())}
+    if(b.dataset.wd){
+      const pay=b.dataset.a==='paid';
+      if(!confirm(pay?'¿Confirmás que ya enviaste el dinero a esta billetera?':'¿Rechazar y devolverle el saldo al usuario?'))return;
+      await api(`/admin/withdrawals/${b.dataset.wd}/${b.dataset.a}`,'POST');if(!DEMO)toast(pay?'Marcado como pagado':'Rechazado y saldo devuelto');loadWd();
+    }
+  }catch(err){toast('⚠️ '+err.message)}
+});
+
+const loaders={home:loadHome,users:()=>loadUsers($('#q').value.trim()),wd:loadWd,eco:loadEco};
+let cur='home';
+async function show(v){
+  cur=v;$$('section').forEach(s=>s.classList.toggle('hide',s.id!=='v-'+v));
+  $$('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));scrollTo(0,0);
+  try{await loaders[v]()}catch(e){toast('⚠️ '+e.message)}
+}
+$$('nav button').forEach(b=>b.onclick=()=>show(b.dataset.v));
+$('#refresh').onclick=()=>show(cur);
+$('#qgo').onclick=()=>loadUsers($('#q').value.trim());
+$('#q').addEventListener('keydown',e=>{if(e.key==='Enter')loadUsers($('#q').value.trim())});
+
+async function start(){
+  $('#login').classList.add('hide');$('#app').classList.remove('hide');
+  try{await loadHome();loadWd().catch(()=>{})}catch(e){
+    if(!DEMO){sessionStorage.removeItem('ffk');$('#app').classList.add('hide');$('#login').classList.remove('hide');$('#loginErr').textContent=e.message;return}
+  }
+}
+$('#enter').onclick=()=>{
+  KEY=$('#key').value.trim();if(!KEY)return;
+  try{sessionStorage.setItem('ffk',KEY)}catch(e){}
+  $('#loginErr').textContent='';start();
+};
+$('#key').addEventListener('keydown',e=>{if(e.key==='Enter')$('#enter').click()});
+if(DEMO){$('#demoBar').classList.remove('hide');$('#sub').textContent='Demostración';start()}
+else{
+  if(!BASE){$('#login').classList.remove('hide');$('#loginErr').textContent='Falta config.js con la dirección del servidor'}
+  else{try{KEY=sessionStorage.getItem('ffk')||''}catch(e){}
+    if(KEY)start();else $('#login').classList.remove('hide')}
+}
+})();
+</script>
+</body>
+</html>
